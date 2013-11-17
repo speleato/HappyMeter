@@ -1,14 +1,24 @@
 __author__ = 'Sergio'
 
 import array
+from decimal import *
+getcontext().prec = 3
 
-Period_Between_Slopes = 30 #days
-Length_Sample_Data = 8 #days
+Period_Between_Slopes = 2 #days
+Length_Sample_Data = 2 #days
 Significative_Slope_variation = 0.2 #degrees
 
 #Structure to store input data
-User = array('i')
-Group = array(User)
+#User = array('i')
+#Group = array(User)
+Group = [
+    [1,0,1,1,-1,-1,0],
+    [1,0,0,-1,-1,-1,1],
+    [0,1,0,-1,0,-1,0],
+    [0,1,1,0,1,1,1],
+    [0,0,-1,-1,0,0,0],
+    [1,0,-1,0,-1,-1,-1]
+]
 
 #Structure to store the slopes through time
 Slope_Values = list
@@ -21,7 +31,37 @@ User_influence = list
 Group_influence = list
 
 
-class Engine():
+class Engine(object):
+
+    def __init__(self, groupInput):
+        #variables initialization. Supposition: we will not have a null input and the given data will be a square
+        #matrix, not a set of different length arrays. Every value will be initialized (NO NULL VALUES)
+        global Group
+        global Period_Between_Slopes
+        global Length_Sample_Data
+        global Slope_Variations
+        global Slope_Values
+        global Group_influence
+        #Group = groupInput
+        lengthOfArrays = len(Group[0])
+        #initially, nobody has influence over anybody
+        Group_influence = [[None for x in range (len(Group))] for y in range (len(Group[0]))]
+        #initially we have no scopes so the list will be initiated with values 100. The number of slope variations and
+        #slope values that we will have will be determined by the amount of days that we have divided by how many days are
+        #we going to take in between samples.
+        Slope_Values = [[100]*(len(Group[0])/Period_Between_Slopes)]*len(Group)
+        Slope_Variations = [[100]*(len(Group[0])/Period_Between_Slopes)]*len(Group)
+        Group_influence = [[100]*(len(Group[0])/Period_Between_Slopes)]*len(Group)
+
+    def Testeable(self):
+        number = len([1,1,1,1,1,1])
+        return "this works" + str(number)
+
+    def calculateSlope(self, dataSet):
+        number_of_data= len(dataSet)
+        sum_of_data=sum(dataSet)
+        slope=Decimal(sum_of_data)/Decimal(number_of_data)
+        return slope
 
     def recursiveInfluencersSearch(self,time_period, positiveInfluencer, negativeInfluencer, from_index, to_index):
         #Uses recursive algorithm to find all the positive and negative influencers of a determined time period on the slope
@@ -77,9 +117,6 @@ class Engine():
                     Group_influence[j].insert(i,Negative_Influencer)
 
 
-
-
-
     def Influences(self):
         global Group
         global Period_Between_Slopes
@@ -87,13 +124,12 @@ class Engine():
         global Slope_Variations
         global Slope_Values
         global Group_influence
-
         #//////////////////////////////////////////////////////////////////////////////////////////////////////////////
         #We calculate the initial mood tendency of each user
         for i in range(len(Group)):
             arrayUser = Group[i][0:Length_Sample_Data]
-            initialSlope = Calc_Slope(arrayUser)  #TBD (Kevin)
-            Slope_Values[i].append(initialSlope)
+            initialSlope = self.calculateSlope(arrayUser)  #TBD (Kevin)
+            Slope_Values[i].insert(0,initialSlope) #(initialSlope)
 
         #//////////////////////////////////////////////////////////////////////////////////////////////////////////////
         #We calculate the mood after each month.
@@ -101,40 +137,22 @@ class Engine():
         #   samples from each user's dataset to obtain the scope. Initially will be the first period (first month)
         #2. Length_Sample_Data will be the amount of days we will be taking as a sample. Given the dataset_moment, we will
         #   take both from the future as from the past to obtain an average value of the slope at that given moment.
-        iterations = 1
+        iterations = 0
         dataset_moment = Period_Between_Slopes
         while (len(Group[0])> dataset_moment + (Length_Sample_Data/2)):
             #We calculate the slope after each month for each user
             for i in range(len(Group)):
                 arrayUser = Group[i][(dataset_moment - (Length_Sample_Data/2)):(dataset_moment + (Length_Sample_Data/2))]
-                slopeForUserI = Calc_Slope(arrayUser)  #TBD (Kevin)
+                slopeForUserI =self.calculateSlope(arrayUser)  #TBD (Kevin)
                 #We store the value of the slope obtained this month compared to the value of the previous monthx
-                Slope_Variations[i].append(slopeForUserI - Slope_Values[i][-1])
-                Slope_Values[i].append(slopeForUserI)
+                Slope_Variations[i].insert(iterations, slopeForUserI - Slope_Values[i][-1])
+                Slope_Values[i].insert(iterations, slopeForUserI)
 
             iterations += 1
-            dataset_moment = Period_Between_Slopes*iterations
+            dataset_moment = Period_Between_Slopes*(iterations+1)
         #Now we have the slopes of every user at every month of the dataset that we have been provided. We will have to
         #   to compare them to see who is influencing who.
+        print Slope_Values[0]
+        print Slope_Variations[0]
         #self.interpretateInfluence()
-
-
-        def __init__(self, groupInput):
-            #variables initialization. Supposition: we will not have a null input and the given data will be a square
-            #matrix, not a set of different length arrays. Every value will be initialized (NO NULL VALUES)
-            global Group
-            global Period_Between_Slopes
-            global Length_Sample_Data
-            global Slope_Variations
-            global Slope_Values
-            global Group_influence
-            Group = groupInput
-            lengthOfArrays = len(Group[0])
-            #initially, nobody has influence over anybody
-            Group_influence = [[None for x in range (len(Group))] for y in range (len(Group[0]))]
-            #initially we have no scopes but the list is not empty
-            for x in range (len(Group)):
-                Slope_Values.append([])
-                Slope_Variations.append([])
-                Group_influence.append(User_influence)
 
