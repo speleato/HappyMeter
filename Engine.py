@@ -69,10 +69,12 @@ class Engine(object):
         #Uses recursive algorithm to find all the positive and negative influencers of a determined time period on the slope
         global Slope_Variations
         global Significative_Slope_variation
+
         PositiveInfluenceR_Candidates = []
         NegativeInfluenceR_Candidates = []
         PositiveInfluenceD_Candidates = []
         NegativeInfluenceD_Candidates = []
+
         positiveInfluenceR_votes = 0
         negativeInfluenceR_votes = 0
         positiveInfluenceD_votes = 0
@@ -122,6 +124,8 @@ class Engine(object):
             negativeInfluenceR_votes = 0
             positiveInfluenceD_votes = 0
             negativeInfluenceD_votes = 0
+
+        #We return the users that have been classified as influencers and influenceds.
         return (PositiveInfluenceR_Candidates, NegativeInfluenceR_Candidates, PositiveInfluenceD_Candidates, NegativeInfluenceD_Candidates)
 
             #for j in range (len(Group)):
